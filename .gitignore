@@ -1,0 +1,15 @@
+.DS_Store
+*.log
+.idea/
+.vscode/
+*.pyc
+.ipynb_checkpoints
+models
+results/
+data/audio/*.wav
+data/video/*.mp4
+*.mp4
+*.mov
+*.mp3
+*.webm
+*.wav
