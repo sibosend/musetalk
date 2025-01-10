@@ -29,6 +29,19 @@ pe = pe.half()
 vae.vae = vae.vae.half()
 unet.model = unet.model.half()
 
+def video2imgs_old(vid_path, save_path, ext = '.png',cut_frame = 10000000):
+    cap = cv2.VideoCapture(vid_path)
+    count = 0
+    while True:
+        if count > cut_frame:
+            break
+        ret, frame = cap.read()
+        if ret:
+            cv2.imwrite(f"{save_path}/{count:08d}.png", frame, [int(cv2.IMWRITE_PNG_COMPRESSION),9])
+            count += 1
+        else:
+            break
+
 def video2imgs(vid_path, save_path, ext = '.png',cut_frame = 10000000):
     cap = cv2.VideoCapture(vid_path)
     count = 0
@@ -37,7 +50,26 @@ def video2imgs(vid_path, save_path, ext = '.png',cut_frame = 10000000):
             break
         ret, frame = cap.read()
         if ret:
-            cv2.imwrite(f"{save_path}/{count:08d}.png", frame)
+
+            # Adjusted green color range
+            lower_green = np.array([40, 80, 110])
+            upper_green = np.array([70, 255, 255])
+
+            # Convert the frame to HSV color space for better color detection
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            mask = cv2.inRange(hsv, lower_green, upper_green)
+
+            # Improve the mask using morphological operations
+            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+            mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, np.ones((3, 3), np.uint8))
+
+            # Create the inverse mask
+            mask_inv = cv2.bitwise_not(mask)
+
+            # Use the mask to extract the foreground (original frame) and the background (replacement image)
+            frame_final = cv2.bitwise_and(frame, frame, mask=mask_inv)
+
+            cv2.imwrite(f"{save_path}/{count:08d}.png", frame_final, [int(cv2.IMWRITE_PNG_COMPRESSION),9])
             count += 1
         else:
             break
@@ -171,7 +203,7 @@ class Avatar:
         self.mask_list_cycle = []
 
         for i,frame in enumerate(tqdm(self.frame_list_cycle)):
-            cv2.imwrite(f"{self.full_imgs_path}/{str(i).zfill(8)}.png",frame)
+            cv2.imwrite(f"{self.full_imgs_path}/{str(i).zfill(8)}.png",frame, [int(cv2.IMWRITE_PNG_COMPRESSION),9])
             
             face_box = self.coord_list_cycle[i]
             mask,crop_box = get_image_prepare_material(frame,face_box)

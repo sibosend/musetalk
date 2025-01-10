@@ -36,3 +36,4 @@ export FFMPEG_PATH=/root/autodl-tmp/third_requires/ffmpeg-linux-x64
 python -m scripts.realtime_inference --inference_config configs/inference/realtime.yaml
 
 
+nohup python -m scripts.realtime_inference --inference_config configs/inference/realtime_5_huang.yaml  > train.log &

@@ -13,3 +13,4 @@ data/video/*.mp4
 *.mp3
 *.webm
 *.wav
+tmp/
