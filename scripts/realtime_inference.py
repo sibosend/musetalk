@@ -42,7 +42,7 @@ def video2imgs_old(vid_path, save_path, ext = '.png',cut_frame = 10000000):
         else:
             break
 
-def video2imgs(vid_path, save_path, ext = '.png',cut_frame = 10000000):
+def video2imgs(vid_path, save_path, green_l, green_u, ext = '.png', cut_frame = 10000000):
     cap = cv2.VideoCapture(vid_path)
     count = 0
     while True:
@@ -52,8 +52,8 @@ def video2imgs(vid_path, save_path, ext = '.png',cut_frame = 10000000):
         if ret:
 
             # Adjusted green color range
-            lower_green = np.array([40, 80, 110])
-            upper_green = np.array([70, 255, 255])
+            lower_green = np.array(green_l)
+            upper_green = np.array(green_u)
 
             # Convert the frame to HSV color space for better color detection
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -81,7 +81,7 @@ def osmakedirs(path_list):
 
 @torch.no_grad() 
 class Avatar:
-    def __init__(self, avatar_id, video_path, bbox_shift, batch_size, preparation):
+    def __init__(self, avatar_id, video_path, bbox_shift, batch_size, preparation, green_l = [0,0,0], green_u = [0,0,0]):
         self.avatar_id = avatar_id
         self.video_path = video_path
         self.bbox_shift = bbox_shift
@@ -100,6 +100,8 @@ class Avatar:
         }
         self.preparation = preparation
         self.batch_size = batch_size
+        self.green_l = green_l
+        self.green_u = green_u
         self.idx = 0
         self.init()
         
@@ -170,7 +172,7 @@ class Avatar:
             json.dump(self.avatar_info, f)
             
         if os.path.isfile(self.video_path):
-            video2imgs(self.video_path, self.full_imgs_path, ext = 'png')
+            video2imgs(self.video_path, self.full_imgs_path, self.green_l, self.green_u, ext = 'png')
         else:
             print(f"copy files in {self.video_path}")
             files = os.listdir(self.video_path)
@@ -351,12 +353,17 @@ if __name__ == "__main__":
         data_preparation = inference_config[avatar_id]["preparation"]
         video_path = inference_config[avatar_id]["video_path"]
         bbox_shift = inference_config[avatar_id]["bbox_shift"]
+        green_l = inference_config[avatar_id]["lower_green"]
+        green_u = inference_config[avatar_id]["upper_green"]
         avatar = Avatar(
             avatar_id = avatar_id, 
             video_path = video_path, 
             bbox_shift = bbox_shift, 
             batch_size = args.batch_size,
-            preparation= data_preparation)
+            preparation= data_preparation,
+            green_l = green_l,
+            green_u = green_u
+            )
         
         audio_clips = inference_config[avatar_id]["audio_clips"]
         for audio_num, audio_path in audio_clips.items():

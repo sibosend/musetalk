@@ -36,4 +36,9 @@ export FFMPEG_PATH=/root/autodl-tmp/third_requires/ffmpeg-linux-x64
 python -m scripts.realtime_inference --inference_config configs/inference/realtime.yaml
 
 
-nohup python -m scripts.realtime_inference --inference_config configs/inference/realtime_5_huang.yaml  > train.log &
+nohup python -m scripts.realtime_inference --inference_config configs/inference/realtime_6_huang.yaml  > train.log &
+
+
+# 生成静默等待状态素材
+cd results/avatars/avator_5/
+ffmpeg -i /data/chazing_incubator/MuseTalk/data/example/huangjinbiao/huang720p.30fps.noaudio2.mov -s 720x1280 -vf fps=25 -qmin 1 -q:v 1 -start_number 0 ./customvideo/image/%08d.png
